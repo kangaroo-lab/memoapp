@@ -6,11 +6,33 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import { shape, string, instanceOf,arrayOf } from 'prop-types';
 
+import firebase from 'firebase';
+
 import {dateToString} from '../utils'
 
 export default function memoList(props) {
     const {memos} = props;
     const navigation = useNavigation();
+    function deleteMemo(id){
+        const {currentUser} = firebase.auth();
+        if(currentUser){
+            const db = firebase.firestore();
+            const ref = db.collection(`users/${currentUser.uid}/memos`).doc(id);
+            Alert.alert('メモを削除します','よろしいか？',[
+                {
+                    text: 'だめ！',
+                    onPress: ()=>{}
+                },
+                {
+                    text: '構わん、やれ',
+                    style: 'destructive',
+                    onPress: ()=>{
+                        ref.delete().catch(()=>{ Alert.alert('パターン青でござる')})
+                    },
+                }
+            ]);
+        }
+    }
 
     function renderItem({ item }) {
         return (
@@ -25,7 +47,7 @@ export default function memoList(props) {
 
             <TouchableOpacity
                 style={styles.memoDelete}
-                onPress={()=>{Alert.alert('Are You Sure?')}}
+                onPress={()=>{deleteMemo(item.id)}}
             >
                 <Feather name="x" size={16} color='#B0B0B0'/>
             </TouchableOpacity>
